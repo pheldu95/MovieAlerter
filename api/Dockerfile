@@ -40,8 +40,10 @@ RUN set -eux; \
 
 ###> recipes ###
 ###> doctrine/doctrine-bundle ###
+#RUN set -eux; \
+#	install-php-extensions pdo_pgsql \
 RUN set -eux; \
-	install-php-extensions pdo_pgsql
+   install-php-extensions pdo_mysql
 ###< doctrine/doctrine-bundle ###
 ###< recipes ###
 
