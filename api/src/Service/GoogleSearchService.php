@@ -2,23 +2,17 @@
 // src/Service/GoogleSearchService.php
 namespace App\Service;
 
-use App\Entity\SearchResult;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class GoogleSearchService
 {
     private HttpClientInterface $httpClient;
-    private EntityManagerInterface $entityManager;
     private string $userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36';
 
-    public function __construct(
-        HttpClientInterface $httpClient,
-        EntityManagerInterface $entityManager
-    ) {
+    public function __construct(HttpClientInterface $httpClient)
+    {
         $this->httpClient = $httpClient;
-        $this->entityManager = $entityManager;
     }
 
     public function search(string $query, int $limit = 10): array
@@ -37,14 +31,15 @@ class GoogleSearchService
 
         // Get the content
         $html = $response->getContent();
-
+dd($html);
         // Parse with DomCrawler
         $crawler = new Crawler($html);
 
         // Extract search results
         $results = [];
 
-        $crawler->filter('div.g')->each(function (Crawler $node) use (&$results, $query) {
+        // Google's HTML structure might change over time - adjust selectors as needed
+        $crawler->filter('div.g')->each(function (Crawler $node) use (&$results) {
             // Extract title
             $titleNode = $node->filter('h3');
             if ($titleNode->count() === 0) {
@@ -69,18 +64,13 @@ class GoogleSearchService
             $snippetNode = $node->filter('div.VwiC3b');
             $snippet = $snippetNode->count() > 0 ? $snippetNode->text() : null;
 
-            // Create and store entity
-            $searchResult = new SearchResult();
-            $searchResult->setTitle($title)
-                ->setUrl($url)
-                ->setSnippet($snippet)
-                ->setQuery($query);
-
-            $this->entityManager->persist($searchResult);
-            $results[] = $searchResult;
+            // Store as array
+            $results[] = [
+                'title' => $title,
+                'url' => $url,
+                'snippet' => $snippet,
+            ];
         });
-
-        $this->entityManager->flush();
 
         return $results;
     }

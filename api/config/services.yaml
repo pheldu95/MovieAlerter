@@ -24,5 +24,9 @@ services:
       bind:
         $processor: '@api_platform.doctrine.orm.state.persist_processor'
 
+    App\Service\GoogleSearchService:
+        arguments:
+            $httpClient: '@http_client'
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
